@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IR → Structure Quiz</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #0b0d12; color: #e9eef7;
+    }
+    header {
+      padding: 20px 16px;
+      background: linear-gradient(180deg, #12182a, #0b0d12);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    header h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+    header p { margin: 0; opacity: 0.8; font-size: 13px; line-height: 1.35; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row > * { flex: 0 0 auto; }
+
+    select, button, input {
+      background: rgba(255,255,255,0.05);
+      color: inherit;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    button { cursor: pointer; }
+    button:hover { border-color: rgba(255,255,255,0.25); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .stat {
+      font-size: 13px;
+      opacity: 0.85;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .choice {
+      border-radius: 16px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.03);
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+      cursor: pointer;
+      min-height: 136px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .choice:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
+    .choice .label { font-size: 12px; opacity: 0.9; }
+
+    .choice.correct { border-color: rgba(69, 214, 144, 0.85); background: rgba(69,214,144,0.10); }
+    .choice.wrong   { border-color: rgba(255, 89, 106, 0.85); background: rgba(255,89,106,0.10); }
+
+    .hint {
+      font-size: 12px;
+      opacity: 0.78;
+      line-height: 1.35;
+      margin-top: 10px;
+    }
+
+    .small {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+
+    #spectrum {
+      width: 100%;
+      height: 420px;
+      background: rgba(0,0,0,0.20);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .danger {
+      border-color: rgba(255, 186, 48, 0.45);
+      background: rgba(255,186,48,0.07);
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      #spectrum { height: 360px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>IR → Structure Quiz</h1>
+      <p>
+        This demo generates a realistic-looking IR trace from characteristic peak lists (so it runs without proprietary databases).
+        You can swap in real spectra later (JCAMP/CSV) by extending the <span class="pill">spectraProvider</span> section.
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="card">
+        <div class="row" style="justify-content: space-between; gap: 12px;">
+          <div class="row">
+            <span class="pill" id="modePill">Mode: easy</span>
+            <span class="pill" id="classPill">Class: mixed</span>
+          </div>
+          <div class="row">
+            <button id="btnNew">New question</button>
+            <button id="btnReveal" class="danger">Reveal</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <canvas id="spectrum"></canvas>
+        </div>
+
+        <div class="footer">
+          <div class="stat">
+            <div>Score: <b id="score">0</b> / <b id="total">0</b></div>
+            <div>Streak: <b id="streak">0</b></div>
+          </div>
+          <div class="small" id="status">Pick the structure that matches the IR spectrum.</div>
+        </div>
+
+        <div class="hint" id="hint"></div>
+      </section>
+
+      <aside class="card">
+        <div class="row" style="justify-content: space-between;">
+          <div style="font-weight: 700;">Multiple choice</div>
+          <span class="pill">4 options</span>
+        </div>
+
+        <div class="choices" id="choices"></div>
+
+        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 14px 0;" />
+
+        <div class="row">
+          <label class="small" for="selClass">Compound class</label>
+          <select id="selClass">
+            <option value="mixed">mixed</option>
+            <option value="aliphatic">aliphatic</option>
+            <option value="aromatic">aromatic</option>
+            <option value="alcohol">alcohol</option>
+            <option value="ketone">ketone</option>
+            <option value="aldehyde">aldehyde</option>
+            <option value="nitrile">nitrile</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top: 10px;">
+          <label class="small" for="selMode">Difficulty</label>
+          <select id="selMode">
+            <option value="easy">easy (obvious functional group)</option>
+            <option value="medium">medium (closer distractors)</option>
+          </select>
+        </div>
+
+        <div class="hint" style="margin-top: 12px;">
+          <div style="font-weight: 650; margin-bottom: 6px;">Want it to fetch data?</div>
+          <div>
+            • Structures can be fetched from <b>PubChem</b> (free) via PUG REST.
+            <br/>• Real IR spectra often aren’t available via open APIs; many databases (e.g., SpectraBase) require accounts/terms.
+            <br/>• You can host a folder of <b>JCAMP-DX</b> files and fetch them with <code>fetch()</code>.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Chart.js for plotting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Structure images via PubChem PUG REST (PNG depictions) -->
+
+  <script>
+    // ------------------------------
+    // 1) DATA: add/replace compounds here
+    // ------------------------------
+    // peaks: [{wn: number, intensity: 0..1, width: number(cm-1)}]
+    // The quiz generates a synthetic transmittance trace with these peaks.
+
+    const COMPOUNDS = [
+      // Aliphatic (alkanes)
+      {
+        id: "hexane",
+        name: "n-Hexane",
+        class: "aliphatic",
+        smiles: "CCCCCC",
+        peaks: [
+          { wn: 2960, intensity: 0.55, width: 20 },
+          { wn: 2930, intensity: 0.65, width: 20 },
+          { wn: 2870, intensity: 0.45, width: 22 },
+          { wn: 1465, intensity: 0.35, width: 18 },
+          { wn: 1375, intensity: 0.30, width: 16 },
+          { wn: 720,  intensity: 0.40, width: 18 },
+        ],
+        hints: ["Strong sp3 C–H stretches 3000–2850", "No C=O, no O–H", "Long-chain CH2 rock ~720"]
+      },
+      {
+        id: "cyclohexane",
+        name: "Cyclohexane",
+        class: "aliphatic",
+        smiles: "C1CCCCC1",
+        peaks: [
+          { wn: 2930, intensity: 0.70, width: 22 },
+          { wn: 2860, intensity: 0.55, width: 22 },
+          { wn: 1450, intensity: 0.40, width: 18 },
+          { wn: 1260, intensity: 0.25, width: 14 },
+          { wn: 1030, intensity: 0.20, width: 14 },
+        ],
+        hints: ["Classic sp3 C–H region", "No strong diagnostic hetero-atom bands"]
+      },
+
+      // Aromatics
+      {
+        id: "toluene",
+        name: "Toluene",
+        class: "aromatic",
+        smiles: "Cc1ccccc1",
+        peaks: [
+          { wn: 3030, intensity: 0.35, width: 20 },
+          { wn: 2920, intensity: 0.30, width: 22 },
+          { wn: 1600, intensity: 0.55, width: 20 },
+          { wn: 1495, intensity: 0.45, width: 18 },
+          { wn: 1450, intensity: 0.25, width: 16 },
+          { wn: 730,  intensity: 0.55, width: 18 },
+          { wn: 690,  intensity: 0.50, width: 18 },
+        ],
+        hints: ["Aromatic C–H ~3030", "Ring C=C ~1600/1500", "Out-of-plane C–H 700–900"]
+      },
+      {
+        id: "ethylbenzene",
+        name: "Ethylbenzene",
+        class: "aromatic",
+        smiles: "CCc1ccccc1",
+        peaks: [
+          { wn: 3030, intensity: 0.32, width: 20 },
+          { wn: 2960, intensity: 0.45, width: 22 },
+          { wn: 2925, intensity: 0.40, width: 22 },
+          { wn: 1600, intensity: 0.52, width: 20 },
+          { wn: 1495, intensity: 0.42, width: 18 },
+          { wn: 750,  intensity: 0.50, width: 18 },
+          { wn: 700,  intensity: 0.48, width: 18 },
+        ],
+        hints: ["Aromatic pattern + extra alkyl C–H"]
+      },
+
+      // Alcohols
+      {
+        id: "ethanol",
+        name: "Ethanol",
+        class: "alcohol",
+        smiles: "CCO",
+        peaks: [
+          { wn: 3350, intensity: 0.75, width: 140 }, // broad O–H
+          { wn: 2970, intensity: 0.40, width: 22 },
+          { wn: 2930, intensity: 0.35, width: 22 },
+          { wn: 1050, intensity: 0.70, width: 30 }, // C–O
+        ],
+        hints: ["Broad O–H 3600–3200", "Strong C–O ~1050"]
+      },
+      {
+        id: "isopropanol",
+        name: "2-Propanol",
+        class: "alcohol",
+        smiles: "CC(O)C",
+        peaks: [
+          { wn: 3350, intensity: 0.78, width: 150 },
+          { wn: 2970, intensity: 0.50, width: 22 },
+          { wn: 2930, intensity: 0.45, width: 22 },
+          { wn: 1120, intensity: 0.62, width: 28 },
+          { wn: 1050, intensity: 0.45, width: 24 },
+        ],
+        hints: ["Broad O–H + C–O stretch around 1100"]
+      },
+
+      // Ketones
+      {
+        id: "acetone",
+        name: "Acetone",
+        class: "ketone",
+        smiles: "CC(=O)C",
+        peaks: [
+          { wn: 1715, intensity: 0.95, width: 22 }, // C=O
+          { wn: 2960, intensity: 0.45, width: 22 },
+          { wn: 2870, intensity: 0.30, width: 22 },
+          { wn: 1360, intensity: 0.35, width: 16 },
+          { wn: 1220, intensity: 0.22, width: 14 },
+        ],
+        hints: ["Very strong C=O ~1715", "No aldehyde C–H doublet"]
+      },
+      {
+        id: "cyclohexanone",
+        name: "Cyclohexanone",
+        class: "ketone",
+        smiles: "O=C1CCCCC1",
+        peaks: [
+          { wn: 1715, intensity: 0.92, width: 22 },
+          { wn: 2940, intensity: 0.55, width: 22 },
+          { wn: 2860, intensity: 0.45, width: 22 },
+          { wn: 1450, intensity: 0.38, width: 18 },
+        ],
+        hints: ["Strong C=O + mostly aliphatic otherwise"]
+      },
+
+      // Aldehydes
+      {
+        id: "propanal",
+        name: "Propanal",
+        class: "aldehyde",
+        smiles: "CCC=O",
+        peaks: [
+          { wn: 1725, intensity: 0.92, width: 22 },
+          { wn: 2820, intensity: 0.30, width: 18 },
+          { wn: 2720, intensity: 0.28, width: 18 },
+          { wn: 2960, intensity: 0.45, width: 22 },
+          { wn: 2870, intensity: 0.32, width: 22 },
+        ],
+        hints: ["Aldehyde C–H doublet ~2820 & ~2720", "Strong C=O"]
+      },
+      {
+        id: "benzaldehyde",
+        name: "Benzaldehyde",
+        class: "aldehyde",
+        smiles: "O= Cc1ccccc1".replace(" ",""),
+        peaks: [
+          { wn: 1700, intensity: 0.90, width: 22 },
+          { wn: 2820, intensity: 0.28, width: 18 },
+          { wn: 2720, intensity: 0.26, width: 18 },
+          { wn: 3030, intensity: 0.32, width: 20 },
+          { wn: 1600, intensity: 0.50, width: 20 },
+          { wn: 1495, intensity: 0.40, width: 18 },
+          { wn: 750,  intensity: 0.48, width: 18 },
+          { wn: 690,  intensity: 0.44, width: 18 },
+        ],
+        hints: ["Aldehyde doublet + aromatic ring signals"]
+      },
+
+      // Nitriles
+      {
+        id: "acetonitrile",
+        name: "Acetonitrile",
+        class: "nitrile",
+        smiles: "CC#N",
+        peaks: [
+          { wn: 2250, intensity: 0.70, width: 16 },
+          { wn: 2960, intensity: 0.35, width: 22 },
+          { wn: 2870, intensity: 0.25, width: 22 },
+        ],
+        hints: ["Sharp C≡N ~2260–2220", "No carbonyl"]
+      },
+      {
+        id: "benzonitrile",
+        name: "Benzonitrile",
+        class: "nitrile",
+        smiles: "N#Cc1ccccc1",
+        peaks: [
+          { wn: 2230, intensity: 0.72, width: 16 },
+          { wn: 3030, intensity: 0.32, width: 20 },
+          { wn: 1600, intensity: 0.50, width: 20 },
+          { wn: 1495, intensity: 0.38, width: 18 },
+          { wn: 750,  intensity: 0.46, width: 18 },
+          { wn: 690,  intensity: 0.42, width: 18 },
+        ],
+        hints: ["Aromatic pattern + nitrile band"]
+      },
+    ];
+
+    // ------------------------------
+    // 2) OPTIONAL: Structure fetch (PubChem PUG REST)
+    // ------------------------------
+    async function maybeFetchSmilesFromPubChem(name) {
+      // Returns CanonicalSMILES or null
+      try {
+        const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/property/CanonicalSMILES/JSON`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data?.PropertyTable?.Properties?.[0]?.CanonicalSMILES ?? null;
+      } catch {
+        return null;
+      }
+    }
+
+    // ------------------------------
+    // 3) Spectrum generator (synthetic but IR-like)
+    // ------------------------------
+    function gaussian(x, mu, sigma) {
+      const z = (x - mu) / sigma;
+      return Math.exp(-0.5 * z * z);
+    }
+
+    function makeSpectrumFromPeaks(peaks, opts) {
+      const wnMin = 650;
+      const wnMax = 4000;
+      const step = opts.step ?? 2; // cm-1
+      const noise = opts.noise ?? 0.004;
+      const baseline = opts.baseline ?? 0.94; // transmittance baseline
+
+      const xs = [];
+      const ys = [];
+
+      for (let wn = wnMax; wn >= wnMin; wn -= step) {
+        let absorb = 0;
+        for (const p of peaks) {
+          const sigma = (p.width ?? 20);
+          absorb += (p.intensity ?? 0.5) * gaussian(wn, p.wn, sigma);
+        }
+        // Convert absorbance-like to transmittance-like: higher absorb => lower %T
+        let t = baseline - 0.55 * absorb;
+        // gentle ripple baseline + noise
+        t += 0.01 * Math.sin(wn / 180) + 0.006 * Math.sin(wn / 57);
+        t += (Math.random() - 0.5) * 2 * noise;
+        t = Math.max(0.02, Math.min(0.99, t));
+
+        xs.push(wn);
+        ys.push(t * 100);
+      }
+      return { xs, ys };
+    }
+
+    // ------------------------------
+    // 4) Quiz engine
+    // ------------------------------
+    const state = {
+      mode: "easy",
+      classFilter: "mixed",
+      current: null,
+      options: [],
+      locked: false,
+      score: 0,
+      total: 0,
+      streak: 0,
+      chart: null,
+    };
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function poolByFilter() {
+      if (state.classFilter === "mixed") return COMPOUNDS.slice();
+      return COMPOUNDS.filter(c => c.class === state.classFilter);
+    }
+
+    function chooseDistractors(correct, pool) {
+      // easy: any other classes allowed; medium: prefer same class
+      const wanted = 3;
+      let candidates = pool.filter(c => c.id !== correct.id);
+
+      if (state.mode === "medium") {
+        const sameClass = candidates.filter(c => c.class === correct.class);
+        const other = candidates.filter(c => c.class !== correct.class);
+        candidates = sameClass.length >= wanted ? sameClass : sameClass.concat(other);
+      }
+
+      return shuffle(candidates).slice(0, wanted);
+    }
+
+    function renderPills() {
+      document.getElementById('modePill').textContent = `Mode: ${state.mode}`;
+      document.getElementById('classPill').textContent = `Class: ${state.classFilter}`;
+    }
+
+    function renderStats() {
+      document.getElementById('score').textContent = String(state.score);
+      document.getElementById('total').textContent = String(state.total);
+      document.getElementById('streak').textContent = String(state.streak);
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    function setHint(lines) {
+      const el = document.getElementById('hint');
+      if (!lines || !lines.length) { el.textContent = ""; return; }
+      el.innerHTML = `<b>Hints:</b> ${lines.map(x => `• ${x}`).join(" &nbsp; ")}`;
+    }
+
+    function renderSpectrum(compound) {
+      const spectrum = makeSpectrumFromPeaks(compound.peaks, {
+        step: 2,
+        noise: state.mode === "easy" ? 0.003 : 0.006,
+        baseline: state.mode === "easy" ? 0.95 : 0.93,
+      });
+
+      const ctx = document.getElementById('spectrum');
+      const data = {
+        labels: spectrum.xs,
+        datasets: [{
+          label: "%T",
+          data: spectrum.ys,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.12,
+        }]
+      };
+
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => `Wavenumber: ${items?.[0]?.label} cm⁻¹`,
+              label: (item) => `%T: ${Number(item.parsed.y).toFixed(1)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            reverse: true,
+            title: { display: true, text: "Wavenumber (cm⁻¹)" },
+            ticks: { maxTicksLimit: 10 }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            title: { display: true, text: "Transmittance (%T)" },
+            ticks: { maxTicksLimit: 6 }
+          }
+        }
+      };
+
+      if (state.chart) state.chart.destroy();
+      state.chart = new Chart(ctx, { type: 'line', data, options });
+    }
+
+    function depictionUrlFromPubChem(compound) {
+      // Uses PubChem's built-in 2D depiction image service.
+      // If your compound name is ambiguous, prefer storing a PubChem CID and use the CID endpoint.
+      const size = 420; // px
+      const name = encodeURIComponent(compound.name);
+      return `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${name}/PNG?image_size=${size}x${size}`;
+    }
+
+    function makeChoiceCard(compound, idx) {
+      const div = document.createElement('div');
+      div.className = 'choice';
+      div.dataset.id = compound.id;
+
+      const imgUrl = depictionUrlFromPubChem(compound);
+
+      div.innerHTML = `
+        <div class="label"><b>${String.fromCharCode(65 + idx)}</b> — ${compound.name}</div>
+        <div style="border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 10px; display:flex; align-items:center; justify-content:center; min-height: 92px;">
+          <img
+            alt="${compound.name} structure"
+            src="${imgUrl}"
+            referrerpolicy="no-referrer"
+            loading="lazy"
+            style="max-width: 100%; max-height: 120px; object-fit: contain; filter: invert(0);"
+            onerror="this.style.display='none'; this.parentElement.innerHTML = '<div class=small style=opacity:.8>Could not load depiction.<br/>Try using a PubChem CID for this compound.</div>'"
+          />
+        </div>
+        <div class="small"><span class="pill">${compound.class}</span></div>
+      `;
+
+      div.addEventListener('click', () => handleAnswer(compound.id, div));
+      return div;
+    }
+
+    function clearChoices() {
+      const el = document.getElementById('choices');
+      el.innerHTML = '';
+    }
+
+    function lockChoices(lock) {
+      state.locked = lock;
+    }
+
+    function markChoices(correctId, pickedId) {
+      const nodes = Array.from(document.querySelectorAll('.choice'));
+      for (const n of nodes) {
+        const id = n.dataset.id;
+        n.classList.remove('correct', 'wrong');
+        if (id === correctId) n.classList.add('correct');
+        if (pickedId && id === pickedId && pickedId !== correctId) n.classList.add('wrong');
+      }
+    }
+
+    async function ensureSmiles(_) {
+      // No-op now. We are using PubChem depictions by compound name.
+      // If you want higher reliability, add `cid` to each COMPOUNDS entry and use the CID depiction URL.
+      return null;
+    }
+
+    async function newQuestion() {
+      lockChoices(false);
+      setStatus('Pick the structure that matches the IR spectrum.');
+
+      const pool = poolByFilter();
+      if (pool.length < 4) {
+        setStatus('Not enough compounds in this class filter (need at least 4).');
+        return;
+      }
+
+      const correct = pickRandom(pool);
+      const distractors = chooseDistractors(correct, pool);
+      const options = shuffle([correct, ...distractors]);
+
+      // Ensure smiles (optional fetch) for each option
+      await Promise.all(options.map(ensureSmiles));
+
+      state.current = correct;
+      state.options = options;
+
+      renderSpectrum(correct);
+      clearChoices();
+
+      const choicesEl = document.getElementById('choices');
+      options.forEach((c, idx) => choicesEl.appendChild(makeChoiceCard(c, idx)));
+
+      // Hints hidden by default; easy mode shows 1 hint to keep it "easy"
+      if (state.mode === 'easy') {
+        setHint(correct.hints?.slice(0, 1) ?? []);
+      } else {
+        setHint([]);
+      }
+
+      renderPills();
+    }
+
+    function handleAnswer(chosenId) {
+      if (state.locked || !state.current) return;
+      lockChoices(true);
+
+      const correctId = state.current.id;
+      const ok = chosenId === correctId;
+
+      state.total += 1;
+      if (ok) {
+        state.score += 1;
+        state.streak += 1;
+        setStatus(`✅ Correct: ${state.current.name} (${state.current.class})`);
+      } else {
+        state.streak = 0;
+        const chosen = state.options.find(o => o.id === chosenId);
+        setStatus(`❌ Not quite. Correct was: ${state.current.name}. You picked: ${chosen?.name ?? 'unknown'}.`);
+      }
+
+      markChoices(correctId, chosenId);
+      renderStats();
+
+      // Reveal all hints after answering
+      setHint(state.current.hints ?? []);
+    }
+
+    function reveal() {
+      if (!state.current) return;
+      lockChoices(true);
+      markChoices(state.current.id, null);
+      setStatus(`Answer: ${state.current.name} (${state.current.class})`);
+      setHint(state.current.hints ?? []);
+    }
+
+    // ------------------------------
+    // 5) UI wiring
+    // ------------------------------
+    document.getElementById('btnNew').addEventListener('click', newQuestion);
+    document.getElementById('btnReveal').addEventListener('click', reveal);
+
+    document.getElementById('selMode').addEventListener('change', (e) => {
+      state.mode = e.target.value;
+      renderPills();
+      newQuestion();
+    });
+
+    document.getElementById('selClass').addEventListener('change', (e) => {
+      state.classFilter = e.target.value;
+      renderPills();
+      newQuestion();
+    });
+
+    // Bootstrap
+    renderStats();
+    renderPills();
+    newQuestion();
+  </script>
+</body>
+</html>
+
