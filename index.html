@@ -6,39 +6,34 @@
   <title>IR → Structure Quiz</title>
   <style>
     :root { color-scheme: light dark; }
-    body {
+    body{
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #0b0d12; color: #e9eef7;
+      margin:0; padding:0;
+      background:#0b0d12; color:#e9eef7;
     }
-    header {
-      padding: 20px 16px;
+
+    header{
+      padding: 14px 14px 10px;
       background: linear-gradient(180deg, #12182a, #0b0d12);
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    header h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
-    header p { margin: 0; opacity: 0.8; font-size: 13px; line-height: 1.35; }
+    header h1{ margin:0 0 4px; font-size: 16px; font-weight: 750; letter-spacing: 0.2px; }
+    header p{ margin:0; opacity:0.78; font-size: 12px; line-height:1.35; }
 
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .wrap{ padding: 12px; max-width: 1400px; margin: 0 auto; }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 16px;
-    }
-
-    .card {
+    .card{
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
-      padding: 14px;
+      padding: 12px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.25);
     }
 
-    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .row > * { flex: 0 0 auto; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .row.spread{ justify-content: space-between; }
 
-    select, button, input {
+    select, button{
       background: rgba(255,255,255,0.05);
       color: inherit;
       border: 1px solid rgba(255,255,255,0.12);
@@ -47,391 +42,409 @@
       font-size: 14px;
       outline: none;
     }
-    button { cursor: pointer; }
-    button:hover { border-color: rgba(255,255,255,0.25); }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button{ cursor:pointer; }
+    button:hover{ border-color: rgba(255,255,255,0.24); }
+    button:disabled{ opacity:0.45; cursor:not-allowed; }
 
-    .stat {
-      font-size: 13px;
-      opacity: 0.85;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
+    .pill{
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      white-space: nowrap;
     }
 
-    .choices {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .stat{ font-size: 13px; opacity: 0.9; display:flex; gap: 12px; align-items:center; flex-wrap:wrap; }
+    .small{ font-size: 12px; opacity: 0.78; }
+
+    /* Full-width spectrum */
+    #spectrumWrap{
       margin-top: 10px;
+      width: 100%;
+      height: min(68vh, 560px);
+    }
+    #spectrum{
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.20);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
     }
 
-    .choice {
+    /* Choices row below */
+    .choicesRow{
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .choice{
+      scroll-snap-align: start;
+      flex: 0 0 auto;
+      width: 260px;
       border-radius: 16px;
       padding: 10px;
       border: 1px solid rgba(255,255,255,0.10);
       background: rgba(255,255,255,0.03);
       transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
       cursor: pointer;
-      min-height: 136px;
-      display: flex;
+      display:flex;
       flex-direction: column;
       gap: 8px;
     }
-    .choice:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
-    .choice .label { font-size: 12px; opacity: 0.9; }
+    .choice:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
+    .choice .label{ font-size: 12px; opacity: 0.92; }
+    .choice.correct{ border-color: rgba(69, 214, 144, 0.85); background: rgba(69,214,144,0.10); }
+    .choice.wrong{ border-color: rgba(255, 89, 106, 0.85); background: rgba(255,89,106,0.10); }
 
-    .choice.correct { border-color: rgba(69, 214, 144, 0.85); background: rgba(69,214,144,0.10); }
-    .choice.wrong   { border-color: rgba(255, 89, 106, 0.85); background: rgba(255,89,106,0.10); }
+    .hintBox{ margin-top: 10px; }
+    .danger{ border-color: rgba(255, 186, 48, 0.45); background: rgba(255,186,48,0.07); }
 
-    .hint {
-      font-size: 12px;
-      opacity: 0.78;
-      line-height: 1.35;
-      margin-top: 10px;
-    }
-
-    .small {
-      font-size: 12px;
-      opacity: 0.75;
-    }
-
-    .pill {
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-    }
-
-    #spectrum {
-      width: 100%;
-      height: 420px;
-      background: rgba(0,0,0,0.20);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .footer {
-      margin-top: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .danger {
-      border-color: rgba(255, 186, 48, 0.45);
-      background: rgba(255,186,48,0.07);
-    }
-
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
-      #spectrum { height: 360px; }
+    /* Phone tweaks */
+    @media (max-width: 520px){
+      header h1{ font-size: 15px; }
+      select, button{ padding: 9px 10px; font-size: 13px; }
+      .choice{ width: 230px; }
+      #spectrumWrap{ height: min(62vh, 520px); }
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap">
+    <div class="wrap" style="padding:0;">
       <h1>IR → Structure Quiz</h1>
-      <p>
-        This demo generates a realistic-looking IR trace from characteristic peak lists (so it runs without proprietary databases).
-        You can swap in real spectra later (JCAMP/CSV) by extending the <span class="pill">spectraProvider</span> section.
-      </p>
+      <p>Absorbance-style display (peaks up). X-axis shows wavenumber increasing to the left (4000 → 650). Uses PubChem depictions for structures.</p>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="grid">
-      <section class="card">
-        <div class="row" style="justify-content: space-between; gap: 12px;">
-          <div class="row">
-            <span class="pill" id="modePill">Mode: easy</span>
-            <span class="pill" id="classPill">Class: mixed</span>
-          </div>
-          <div class="row">
-            <button id="btnNew">New question</button>
-            <button id="btnReveal" class="danger">Reveal</button>
-          </div>
-        </div>
-
-        <div style="margin-top: 10px;">
-          <canvas id="spectrum"></canvas>
-        </div>
-
-        <div class="footer">
-          <div class="stat">
-            <div>Score: <b id="score">0</b> / <b id="total">0</b></div>
-            <div>Streak: <b id="streak">0</b></div>
-          </div>
-          <div class="small" id="status">Pick the structure that matches the IR spectrum.</div>
-        </div>
-
-        <div class="hint" id="hint"></div>
-      </section>
-
-      <aside class="card">
-        <div class="row" style="justify-content: space-between;">
-          <div style="font-weight: 700;">Multiple choice</div>
-          <span class="pill">4 options</span>
-        </div>
-
-        <div class="choices" id="choices"></div>
-
-        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 14px 0;" />
-
+    <section class="card">
+      <div class="row spread" style="gap: 12px;">
         <div class="row">
-          <label class="small" for="selClass">Compound class</label>
-          <select id="selClass">
-            <option value="mixed">mixed</option>
-            <option value="aliphatic">aliphatic</option>
-            <option value="aromatic">aromatic</option>
-            <option value="alcohol">alcohol</option>
-            <option value="ketone">ketone</option>
-            <option value="aldehyde">aldehyde</option>
-            <option value="nitrile">nitrile</option>
-          </select>
+          <span class="pill" id="modePill">Mode: hard</span>
+          <span class="pill" id="classPill">Class: mixed</span>
+          <span class="pill" id="libPill">Library: 0</span>
         </div>
+        <div class="row">
+          <button id="btnNew">New</button>
+          <button id="btnHint">Hint</button>
+          <button id="btnReveal" class="danger">Reveal</button>
+        </div>
+      </div>
 
-        <div class="row" style="margin-top: 10px;">
-          <label class="small" for="selMode">Difficulty</label>
-          <select id="selMode">
-            <option value="easy">easy (obvious functional group)</option>
-            <option value="medium">medium (closer distractors)</option>
-          </select>
-        </div>
+      <div class="row" style="margin-top: 10px;">
+        <label class="small" for="selClass">Class</label>
+        <select id="selClass">
+          <option value="mixed">mixed</option>
+          <option value="aliphatic">aliphatic</option>
+          <option value="aromatic">aromatic</option>
+          <option value="alcohol">alcohol</option>
+          <option value="ketone">ketone</option>
+          <option value="aldehyde">aldehyde</option>
+          <option value="nitrile">nitrile</option>
+        </select>
 
-        <div class="hint" style="margin-top: 12px;">
-          <div style="font-weight: 650; margin-bottom: 6px;">Want it to fetch data?</div>
-          <div>
-            • Structures can be fetched from <b>PubChem</b> (free) via PUG REST.
-            <br/>• Real IR spectra often aren’t available via open APIs; many databases (e.g., SpectraBase) require accounts/terms.
-            <br/>• You can host a folder of <b>JCAMP-DX</b> files and fetch them with <code>fetch()</code>.
-          </div>
+        <label class="small" for="selMode">Difficulty</label>
+        <select id="selMode">
+          <option value="medium">medium</option>
+          <option value="hard" selected>hard (very similar options)</option>
+          <option value="insane">insane (same subgroup/isomers)</option>
+        </select>
+
+        <span class="small" id="status" style="margin-left:auto;">Pick the structure that matches the IR spectrum.</span>
+      </div>
+
+      <div id="spectrumWrap">
+        <canvas id="spectrum"></canvas>
+      </div>
+
+      <div class="row spread" style="margin-top: 10px;">
+        <div class="stat">
+          <div>Score: <b id="score">0</b> / <b id="total">0</b></div>
+          <div>Streak: <b id="streak">0</b></div>
         </div>
-      </aside>
-    </div>
+        <div class="small">Choices scroll horizontally (swipe on phone).</div>
+      </div>
+
+      <div class="choicesRow" id="choices"></div>
+
+      <div class="hintBox small" id="hint" style="display:none;"></div>
+    </section>
   </main>
 
   <!-- Chart.js for plotting -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- Structure images via PubChem PUG REST (PNG depictions) -->
 
   <script>
-    // ------------------------------
-    // 1) DATA: add/replace compounds here
-    // ------------------------------
-    // peaks: [{wn: number, intensity: 0..1, width: number(cm-1)}]
-    // The quiz generates a synthetic transmittance trace with these peaks.
+    // ============================================================
+    // Library generation (>=200 compounds)
+    // ============================================================
+    // NOTE: These are synthetic spectra built from group-frequency templates + fingerprint noise.
+    // Structures are fetched as PNG depictions from PubChem by name.
 
-    const COMPOUNDS = [
-      // Aliphatic (alkanes)
-      {
-        id: "hexane",
-        name: "n-Hexane",
-        class: "aliphatic",
-        smiles: "CCCCCC",
+    const TEMPLATES = {
+      aliphatic_alkane: {
+        class: 'aliphatic',
         peaks: [
-          { wn: 2960, intensity: 0.55, width: 20 },
-          { wn: 2930, intensity: 0.65, width: 20 },
-          { wn: 2870, intensity: 0.45, width: 22 },
-          { wn: 1465, intensity: 0.35, width: 18 },
+          { wn: 2960, intensity: 0.55, width: 22 },
+          { wn: 2930, intensity: 0.70, width: 22 },
+          { wn: 2870, intensity: 0.45, width: 24 },
+          { wn: 1465, intensity: 0.38, width: 18 },
           { wn: 1375, intensity: 0.30, width: 16 },
           { wn: 720,  intensity: 0.40, width: 18 },
         ],
-        hints: ["Strong sp3 C–H stretches 3000–2850", "No C=O, no O–H", "Long-chain CH2 rock ~720"]
+        hints: ['sp3 C–H stretches 3000–2850', 'No strong heteroatom bands', 'CH2 rock ~720 (if long chain)'],
       },
-      {
-        id: "cyclohexane",
-        name: "Cyclohexane",
-        class: "aliphatic",
-        smiles: "C1CCCCC1",
-        peaks: [
-          { wn: 2930, intensity: 0.70, width: 22 },
-          { wn: 2860, intensity: 0.55, width: 22 },
-          { wn: 1450, intensity: 0.40, width: 18 },
-          { wn: 1260, intensity: 0.25, width: 14 },
-          { wn: 1030, intensity: 0.20, width: 14 },
-        ],
-        hints: ["Classic sp3 C–H region", "No strong diagnostic hetero-atom bands"]
-      },
-
-      // Aromatics
-      {
-        id: "toluene",
-        name: "Toluene",
-        class: "aromatic",
-        smiles: "Cc1ccccc1",
-        peaks: [
-          { wn: 3030, intensity: 0.35, width: 20 },
-          { wn: 2920, intensity: 0.30, width: 22 },
-          { wn: 1600, intensity: 0.55, width: 20 },
-          { wn: 1495, intensity: 0.45, width: 18 },
-          { wn: 1450, intensity: 0.25, width: 16 },
-          { wn: 730,  intensity: 0.55, width: 18 },
-          { wn: 690,  intensity: 0.50, width: 18 },
-        ],
-        hints: ["Aromatic C–H ~3030", "Ring C=C ~1600/1500", "Out-of-plane C–H 700–900"]
-      },
-      {
-        id: "ethylbenzene",
-        name: "Ethylbenzene",
-        class: "aromatic",
-        smiles: "CCc1ccccc1",
+      aromatic_hydrocarbon: {
+        class: 'aromatic',
         peaks: [
           { wn: 3030, intensity: 0.32, width: 20 },
-          { wn: 2960, intensity: 0.45, width: 22 },
-          { wn: 2925, intensity: 0.40, width: 22 },
           { wn: 1600, intensity: 0.52, width: 20 },
-          { wn: 1495, intensity: 0.42, width: 18 },
-          { wn: 750,  intensity: 0.50, width: 18 },
-          { wn: 700,  intensity: 0.48, width: 18 },
+          { wn: 1495, intensity: 0.44, width: 18 },
+          { wn: 1450, intensity: 0.22, width: 16 },
+          { wn: 760,  intensity: 0.48, width: 18 },
+          { wn: 700,  intensity: 0.44, width: 18 },
         ],
-        hints: ["Aromatic pattern + extra alkyl C–H"]
+        hints: ['Aromatic C–H ~3030', 'Ring C=C ~1600/1500', 'Out-of-plane C–H 700–900'],
       },
-
-      // Alcohols
-      {
-        id: "ethanol",
-        name: "Ethanol",
-        class: "alcohol",
-        smiles: "CCO",
+      alcohol_primary: {
+        class: 'alcohol',
         peaks: [
-          { wn: 3350, intensity: 0.75, width: 140 }, // broad O–H
-          { wn: 2970, intensity: 0.40, width: 22 },
-          { wn: 2930, intensity: 0.35, width: 22 },
-          { wn: 1050, intensity: 0.70, width: 30 }, // C–O
+          { wn: 3350, intensity: 0.85, width: 160 },
+          { wn: 2970, intensity: 0.38, width: 22 },
+          { wn: 2930, intensity: 0.33, width: 22 },
+          { wn: 1050, intensity: 0.70, width: 30 },
         ],
-        hints: ["Broad O–H 3600–3200", "Strong C–O ~1050"]
+        hints: ['Broad O–H (3600–3200)', 'Strong C–O ~1050–1150', 'No carbonyl'],
       },
-      {
-        id: "isopropanol",
-        name: "2-Propanol",
-        class: "alcohol",
-        smiles: "CC(O)C",
+      alcohol_phenol: {
+        class: 'alcohol',
         peaks: [
-          { wn: 3350, intensity: 0.78, width: 150 },
-          { wn: 2970, intensity: 0.50, width: 22 },
-          { wn: 2930, intensity: 0.45, width: 22 },
-          { wn: 1120, intensity: 0.62, width: 28 },
-          { wn: 1050, intensity: 0.45, width: 24 },
+          { wn: 3350, intensity: 0.82, width: 170 },
+          { wn: 3030, intensity: 0.28, width: 20 },
+          { wn: 1600, intensity: 0.45, width: 20 },
+          { wn: 1495, intensity: 0.35, width: 18 },
+          { wn: 1210, intensity: 0.55, width: 26 },
+          { wn: 750,  intensity: 0.40, width: 18 },
         ],
-        hints: ["Broad O–H + C–O stretch around 1100"]
+        hints: ['Broad O–H + aromatic bands', 'Ar–O stretch often ~1200–1260'],
       },
-
-      // Ketones
-      {
-        id: "acetone",
-        name: "Acetone",
-        class: "ketone",
-        smiles: "CC(=O)C",
+      ketone_aliphatic: {
+        class: 'ketone',
         peaks: [
-          { wn: 1715, intensity: 0.95, width: 22 }, // C=O
+          { wn: 1715, intensity: 0.98, width: 22 },
           { wn: 2960, intensity: 0.45, width: 22 },
           { wn: 2870, intensity: 0.30, width: 22 },
-          { wn: 1360, intensity: 0.35, width: 16 },
-          { wn: 1220, intensity: 0.22, width: 14 },
+          { wn: 1360, intensity: 0.30, width: 16 },
         ],
-        hints: ["Very strong C=O ~1715", "No aldehyde C–H doublet"]
+        hints: ['Very strong C=O ~1715', 'No aldehyde C–H doublet at ~2820/2720'],
       },
-      {
-        id: "cyclohexanone",
-        name: "Cyclohexanone",
-        class: "ketone",
-        smiles: "O=C1CCCCC1",
+      ketone_aromatic: {
+        class: 'ketone',
         peaks: [
-          { wn: 1715, intensity: 0.92, width: 22 },
-          { wn: 2940, intensity: 0.55, width: 22 },
-          { wn: 2860, intensity: 0.45, width: 22 },
-          { wn: 1450, intensity: 0.38, width: 18 },
+          { wn: 1685, intensity: 0.95, width: 22 },
+          { wn: 3030, intensity: 0.30, width: 20 },
+          { wn: 1600, intensity: 0.45, width: 20 },
+          { wn: 1495, intensity: 0.35, width: 18 },
+          { wn: 760,  intensity: 0.40, width: 18 },
         ],
-        hints: ["Strong C=O + mostly aliphatic otherwise"]
+        hints: ['Conjugated/aromatic ketone C=O can shift lower (~1685–1700)'],
       },
-
-      // Aldehydes
-      {
-        id: "propanal",
-        name: "Propanal",
-        class: "aldehyde",
-        smiles: "CCC=O",
+      aldehyde_aliphatic: {
+        class: 'aldehyde',
         peaks: [
-          { wn: 1725, intensity: 0.92, width: 22 },
-          { wn: 2820, intensity: 0.30, width: 18 },
-          { wn: 2720, intensity: 0.28, width: 18 },
-          { wn: 2960, intensity: 0.45, width: 22 },
-          { wn: 2870, intensity: 0.32, width: 22 },
+          { wn: 1725, intensity: 0.95, width: 22 },
+          { wn: 2820, intensity: 0.32, width: 18 },
+          { wn: 2720, intensity: 0.30, width: 18 },
+          { wn: 2960, intensity: 0.40, width: 22 },
         ],
-        hints: ["Aldehyde C–H doublet ~2820 & ~2720", "Strong C=O"]
+        hints: ['Aldehyde C–H doublet (~2820 & ~2720)', 'Strong C=O'],
       },
-      {
-        id: "benzaldehyde",
-        name: "Benzaldehyde",
-        class: "aldehyde",
-        smiles: "O= Cc1ccccc1".replace(" ",""),
+      aldehyde_aromatic: {
+        class: 'aldehyde',
         peaks: [
-          { wn: 1700, intensity: 0.90, width: 22 },
+          { wn: 1700, intensity: 0.92, width: 22 },
           { wn: 2820, intensity: 0.28, width: 18 },
           { wn: 2720, intensity: 0.26, width: 18 },
-          { wn: 3030, intensity: 0.32, width: 20 },
-          { wn: 1600, intensity: 0.50, width: 20 },
-          { wn: 1495, intensity: 0.40, width: 18 },
-          { wn: 750,  intensity: 0.48, width: 18 },
-          { wn: 690,  intensity: 0.44, width: 18 },
+          { wn: 3030, intensity: 0.30, width: 20 },
+          { wn: 1600, intensity: 0.46, width: 20 },
+          { wn: 1495, intensity: 0.36, width: 18 },
         ],
-        hints: ["Aldehyde doublet + aromatic ring signals"]
+        hints: ['Aldehyde doublet + aromatic ring signals'],
       },
-
-      // Nitriles
-      {
-        id: "acetonitrile",
-        name: "Acetonitrile",
-        class: "nitrile",
-        smiles: "CC#N",
+      nitrile_aliphatic: {
+        class: 'nitrile',
         peaks: [
-          { wn: 2250, intensity: 0.70, width: 16 },
+          { wn: 2250, intensity: 0.75, width: 16 },
           { wn: 2960, intensity: 0.35, width: 22 },
           { wn: 2870, intensity: 0.25, width: 22 },
         ],
-        hints: ["Sharp C≡N ~2260–2220", "No carbonyl"]
+        hints: ['Sharp C≡N (~2260–2220)', 'No carbonyl'],
       },
-      {
-        id: "benzonitrile",
-        name: "Benzonitrile",
-        class: "nitrile",
-        smiles: "N#Cc1ccccc1",
+      nitrile_aromatic: {
+        class: 'nitrile',
         peaks: [
-          { wn: 2230, intensity: 0.72, width: 16 },
-          { wn: 3030, intensity: 0.32, width: 20 },
-          { wn: 1600, intensity: 0.50, width: 20 },
-          { wn: 1495, intensity: 0.38, width: 18 },
-          { wn: 750,  intensity: 0.46, width: 18 },
-          { wn: 690,  intensity: 0.42, width: 18 },
+          { wn: 2230, intensity: 0.75, width: 16 },
+          { wn: 3030, intensity: 0.30, width: 20 },
+          { wn: 1600, intensity: 0.46, width: 20 },
+          { wn: 1495, intensity: 0.36, width: 18 },
+          { wn: 760,  intensity: 0.40, width: 18 },
         ],
-        hints: ["Aromatic pattern + nitrile band"]
+        hints: ['Aromatic pattern + nitrile band'],
       },
-    ];
+    };
 
-    // ------------------------------
-    // 2) OPTIONAL: Structure fetch (PubChem PUG REST)
-    // ------------------------------
-    async function maybeFetchSmilesFromPubChem(name) {
-      // Returns CanonicalSMILES or null
-      try {
-        const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/property/CanonicalSMILES/JSON`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data?.PropertyTable?.Properties?.[0]?.CanonicalSMILES ?? null;
-      } catch {
-        return null;
+    // 200+ compound names (common/simple names so PubChem can depict them)
+    // We keep them grouped so distractors can be very similar.
+    const NAME_BANK = {
+      aliphatic_alkane: [
+        'Methane','Ethane','Propane','Butane','Isobutane','Pentane','Isopentane','Neopentane',
+        'Hexane','Heptane','Octane','Nonane','Decane','Undecane','Dodecane','Tridecane','Tetradecane','Pentadecane','Hexadecane',
+        'Cyclopentane','Cyclohexane','Cycloheptane','Cyclooctane','Methylcyclohexane','Ethylcyclohexane','tert-Butylcyclohexane',
+        '2-Methylpentane','3-Methylpentane','2,2-Dimethylbutane','2,3-Dimethylbutane','2-Methylhexane','3-Methylhexane','2,2-Dimethylpentane','2,3-Dimethylpentane','2,4-Dimethylpentane','3,3-Dimethylpentane',
+        '2-Methylheptane','3-Methylheptane','4-Methylheptane','2,2,4-Trimethylpentane','2,3,4-Trimethylpentane','2,2,3-Trimethylbutane',
+      ],
+      aromatic_hydrocarbon: [
+        'Benzene','Toluene','Ethylbenzene','Propylbenzene','Isopropylbenzene','sec-Butylbenzene','tert-Butylbenzene','Cumene',
+        'o-Xylene','m-Xylene','p-Xylene','Mesitylene','Durene','Styrene','Alpha-methylstyrene','Indane','Tetralin','Biphenyl','Naphthalene','Anthracene','Phenanthrene',
+        'Chlorobenzene','Bromobenzene','Iodobenzene','Fluorobenzene','o-Dichlorobenzene','m-Dichlorobenzene','p-Dichlorobenzene',
+        'Anisole','Phenetole','Diphenylmethane','Triphenylmethane','Acenaphthene','Fluorene','Phenylacetylene'
+      ],
+      alcohol_primary: [
+        'Methanol','Ethanol','1-Propanol','2-Propanol','1-Butanol','2-Butanol','tert-Butanol','Isobutanol','Neopentyl alcohol',
+        '1-Pentanol','2-Pentanol','3-Pentanol','1-Hexanol','2-Hexanol','3-Hexanol','1-Heptanol','1-Octanol','2-Octanol','1-Nonanol','1-Decanol',
+        'Ethylene glycol','1,2-Propanediol','1,3-Propanediol','1,4-Butanediol','1,2-Butanediol','Glycerol','2-Methyl-1-propanol','2-Methyl-2-propanol'
+      ],
+      alcohol_phenol: [
+        'Phenol','o-Cresol','m-Cresol','p-Cresol','Catechol','Resorcinol','Hydroquinone','Benzyl alcohol','2-Phenylethanol','4-Methylbenzyl alcohol',
+        '4-Chlorophenol','4-Bromophenol','2-Chlorophenol','2-Naphthol','1-Naphthol','Vanillyl alcohol','Tyrosol'
+      ],
+      ketone_aliphatic: [
+        'Acetone','2-Butanone','3-Pentanone','2-Pentanone','2-Hexanone','3-Hexanone','4-Heptanone','2-Heptanone','2-Octanone','3-Octanone','4-Nonanone',
+        'Cyclopentanone','Cyclohexanone','Cycloheptanone','Cyclooctanone','Methyl ethyl ketone','Diisopropyl ketone','Pinacolone','Acetylacetone'
+      ],
+      ketone_aromatic: [
+        'Acetophenone','Propiophenone','Butyrophenone','Benzophenone','4-Methylacetophenone','4-Methoxyacetophenone','4-Chloroacetophenone','2-Methylacetophenone',
+        '2-Chloroacetophenone','4-Fluoroacetophenone','2,4-Dimethylacetophenone','1-Acetonaphthone','2-Acetonaphthone'
+      ],
+      aldehyde_aliphatic: [
+        'Formaldehyde','Acetaldehyde','Propanal','Butanal','Pentanal','Hexanal','Heptanal','Octanal','Nonanal','Decanal',
+        'Isobutyraldehyde','Isovaleraldehyde','2-Methylbutanal','3-Methylbutanal','2-Ethylbutanal'
+      ],
+      aldehyde_aromatic: [
+        'Benzaldehyde','o-Tolualdehyde','m-Tolualdehyde','p-Tolualdehyde','Anisaldehyde','4-Chlorobenzaldehyde','4-Bromobenzaldehyde','2-Chlorobenzaldehyde',
+        '3-Chlorobenzaldehyde','2,4-Dichlorobenzaldehyde','Vanillin','Cinnamaldehyde','Salicylaldehyde','Piperonal','2-Naphthaldehyde','1-Naphthaldehyde'
+      ],
+      nitrile_aliphatic: [
+        'Acetonitrile','Propionitrile','Butyronitrile','Valeronitrile','Hexanenitrile','Heptanenitrile','Octanenitrile','Nonanenitrile','Decanenitrile',
+        'Isobutyronitrile','Isovaleronitrile','2-Methylbutanenitrile','3-Methylbutanenitrile','Succinonitrile','Glutaronitrile','Adiponitrile'
+      ],
+      nitrile_aromatic: [
+        'Benzonitrile','o-Tolunitrile','m-Tolunitrile','p-Tolunitrile','4-Chlorobenzonitrile','4-Bromobenzonitrile','2-Chlorobenzonitrile','3-Chlorobenzonitrile',
+        '2,4-Dichlorobenzonitrile','4-Fluorobenzonitrile','1-Naphthonitrile','2-Naphthonitrile','4-Methoxybenzonitrile'
+      ],
+    };
+
+    // Expand to >= 200 by programmatic augmentation where needed
+    // (e.g., add numbered alkylbenzenes / alkyl nitriles / alcohols etc.)
+    function augmentBank() {
+      // Add alkylbenzenes C1–C12 (common names are messy; we use "<n>-Propylbenzene" etc. which PubChem usually understands)
+      const alkyls = ['Methyl','Ethyl','Propyl','Butyl','Pentyl','Hexyl','Heptyl','Octyl','Nonyl','Decyl'];
+      for (const a of alkyls) {
+        NAME_BANK.aromatic_hydrocarbon.push(`${a}benzene`);
+      }
+      // Add straight-chain alcohols 11–20
+      for (let n = 11; n <= 20; n++) NAME_BANK.alcohol_primary.push(`${n}-Decanol`.replace('11-Decanol','Undecanol').replace('12-Decanol','Dodecanol'));
+      // Add nitriles 11–16 (generic names)
+      const extraNitriles = ['Undecanenitrile','Dodecanenitrile','Tridecanenitrile','Tetradecanenitrile','Pentadecanenitrile','Hexadecanenitrile'];
+      NAME_BANK.nitrile_aliphatic.push(...extraNitriles);
+      // Add aldehydes 11–16
+      const extraAld = ['Undecanal','Dodecanal','Tridecanal','Tetradecanal','Pentadecanal','Hexadecanal'];
+      NAME_BANK.aldehyde_aliphatic.push(...extraAld);
+      // Add ketones: 2-alkanones 9–14
+      const extraKet = ['2-Nonanone','2-Decanone','2-Undecanone','2-Dodecanone','2-Tridecanone','2-Tetradecanone'];
+      NAME_BANK.ketone_aliphatic.push(...extraKet);
+    }
+    augmentBank();
+
+    function mulberry32(seed) {
+      return function() {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       }
     }
 
-    // ------------------------------
-    // 3) Spectrum generator (synthetic but IR-like)
-    // ------------------------------
+    function hashString(s) {
+      let h = 2166136261;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function jitterPeaks(peaks, rng) {
+      // create a slightly varied copy of template peaks so "similar" compounds remain similar
+      const out = peaks.map(p => ({...p}));
+      for (const p of out) {
+        const shift = (rng() - 0.5) * 12; // +/-6 cm-1
+        const inten = 1 + (rng() - 0.5) * 0.18;
+        const wid = 1 + (rng() - 0.5) * 0.14;
+        p.wn = p.wn + shift;
+        p.intensity = Math.max(0.06, Math.min(1.0, p.intensity * inten));
+        p.width = Math.max(10, p.width * wid);
+      }
+      return out;
+    }
+
+    function addFingerprintNoise(peaks, rng, strength=0.18) {
+      // add a few small-ish peaks in fingerprint region to make things look real
+      const n = 8 + Math.floor(rng() * 8);
+      for (let i = 0; i < n; i++) {
+        const wn = 650 + rng() * (1800 - 650);
+        const intensity = strength * (0.25 + rng() * 0.75);
+        const width = 10 + rng() * 26;
+        peaks.push({ wn, intensity, width });
+      }
+      return peaks;
+    }
+
+    function buildLibrary() {
+      const lib = [];
+      const seen = new Set();
+      for (const [templateKey, names] of Object.entries(NAME_BANK)) {
+        const tpl = TEMPLATES[templateKey];
+        if (!tpl) continue;
+        for (const name of names) {
+          const id = `${templateKey}__${name}`.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+          if (seen.has(id)) continue;
+          seen.add(id);
+          const rng = mulberry32(hashString(id));
+          let peaks = jitterPeaks(tpl.peaks, rng);
+          peaks = addFingerprintNoise(peaks, rng, 0.14);
+          lib.push({
+            id,
+            name,
+            class: tpl.class,
+            subgroup: templateKey,
+            peaks,
+            hints: tpl.hints,
+          });
+        }
+      }
+      return lib;
+    }
+
+    const COMPOUNDS = buildLibrary();
+
+    // ============================================================
+    // Spectrum generator: synthetic transmittance -> convert to absorbance-like (peaks up)
+    // ============================================================
     function gaussian(x, mu, sigma) {
       const z = (x - mu) / sigma;
       return Math.exp(-0.5 * z * z);
@@ -440,38 +453,50 @@
     function makeSpectrumFromPeaks(peaks, opts) {
       const wnMin = 650;
       const wnMax = 4000;
-      const step = opts.step ?? 2; // cm-1
+      const step = opts.step ?? 2;
       const noise = opts.noise ?? 0.004;
       const baseline = opts.baseline ?? 0.94; // transmittance baseline
 
       const xs = [];
-      const ys = [];
+      const ysAbs = [];
 
+      // Generate %T trace
       for (let wn = wnMax; wn >= wnMin; wn -= step) {
         let absorb = 0;
         for (const p of peaks) {
           const sigma = (p.width ?? 20);
           absorb += (p.intensity ?? 0.5) * gaussian(wn, p.wn, sigma);
         }
-        // Convert absorbance-like to transmittance-like: higher absorb => lower %T
         let t = baseline - 0.55 * absorb;
-        // gentle ripple baseline + noise
         t += 0.01 * Math.sin(wn / 180) + 0.006 * Math.sin(wn / 57);
         t += (Math.random() - 0.5) * 2 * noise;
         t = Math.max(0.02, Math.min(0.99, t));
 
+        const percentT = t * 100;
+        // Invert to absorbance-like so peaks go UP
+        const a = 100 - percentT;
+
         xs.push(wn);
-        ys.push(t * 100);
+        ysAbs.push(a);
       }
-      return { xs, ys };
+      return { xs, ysAbs };
     }
 
-    // ------------------------------
-    // 4) Quiz engine
-    // ------------------------------
+    // ============================================================
+    // PubChem depiction images for structures
+    // ============================================================
+    function depictionUrlFromPubChem(compound) {
+      const size = 420;
+      const name = encodeURIComponent(compound.name);
+      return `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${name}/PNG?image_size=${size}x${size}`;
+    }
+
+    // ============================================================
+    // Quiz engine
+    // ============================================================
     const state = {
-      mode: "easy",
-      classFilter: "mixed",
+      mode: 'hard',
+      classFilter: 'mixed',
       current: null,
       options: [],
       locked: false,
@@ -479,12 +504,10 @@
       total: 0,
       streak: 0,
       chart: null,
+      hintShown: 0,
     };
 
-    function pickRandom(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
+    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
     function shuffle(arr) {
       const a = arr.slice();
       for (let i = a.length - 1; i > 0; i--) {
@@ -495,58 +518,64 @@
     }
 
     function poolByFilter() {
-      if (state.classFilter === "mixed") return COMPOUNDS.slice();
+      if (state.classFilter === 'mixed') return COMPOUNDS.slice();
       return COMPOUNDS.filter(c => c.class === state.classFilter);
     }
 
     function chooseDistractors(correct, pool) {
-      // easy: any other classes allowed; medium: prefer same class
       const wanted = 3;
       let candidates = pool.filter(c => c.id !== correct.id);
 
-      if (state.mode === "medium") {
-        const sameClass = candidates.filter(c => c.class === correct.class);
+      if (state.mode === 'medium') {
+        // Prefer same class
+        const same = candidates.filter(c => c.class === correct.class);
         const other = candidates.filter(c => c.class !== correct.class);
-        candidates = sameClass.length >= wanted ? sameClass : sameClass.concat(other);
+        candidates = (same.length >= wanted ? same : same.concat(other));
+      }
+
+      if (state.mode === 'hard') {
+        // Prefer same subgroup (very similar IR), then same class
+        const sameSub = candidates.filter(c => c.subgroup === correct.subgroup);
+        const sameClass = candidates.filter(c => c.class === correct.class && c.subgroup !== correct.subgroup);
+        const other = candidates.filter(c => c.class !== correct.class);
+        candidates = sameSub.concat(sameClass).concat(other);
+      }
+
+      if (state.mode === 'insane') {
+        // Only same subgroup if possible
+        const sameSub = candidates.filter(c => c.subgroup === correct.subgroup);
+        const fallback = candidates.filter(c => c.class === correct.class);
+        candidates = (sameSub.length >= wanted ? sameSub : sameSub.concat(fallback));
       }
 
       return shuffle(candidates).slice(0, wanted);
     }
 
-    function renderPills() {
-      document.getElementById('modePill').textContent = `Mode: ${state.mode}`;
-      document.getElementById('classPill').textContent = `Class: ${state.classFilter}`;
-    }
-
+    function setStatus(msg) { document.getElementById('status').textContent = msg; }
     function renderStats() {
       document.getElementById('score').textContent = String(state.score);
       document.getElementById('total').textContent = String(state.total);
       document.getElementById('streak').textContent = String(state.streak);
     }
-
-    function setStatus(msg) {
-      document.getElementById('status').textContent = msg;
-    }
-
-    function setHint(lines) {
-      const el = document.getElementById('hint');
-      if (!lines || !lines.length) { el.textContent = ""; return; }
-      el.innerHTML = `<b>Hints:</b> ${lines.map(x => `• ${x}`).join(" &nbsp; ")}`;
+    function renderPills() {
+      document.getElementById('modePill').textContent = `Mode: ${state.mode}`;
+      document.getElementById('classPill').textContent = `Class: ${state.classFilter}`;
+      document.getElementById('libPill').textContent = `Library: ${COMPOUNDS.length}`;
     }
 
     function renderSpectrum(compound) {
       const spectrum = makeSpectrumFromPeaks(compound.peaks, {
         step: 2,
-        noise: state.mode === "easy" ? 0.003 : 0.006,
-        baseline: state.mode === "easy" ? 0.95 : 0.93,
+        noise: state.mode === 'medium' ? 0.006 : 0.008,
+        baseline: state.mode === 'medium' ? 0.95 : 0.93,
       });
 
       const ctx = document.getElementById('spectrum');
       const data = {
         labels: spectrum.xs,
         datasets: [{
-          label: "%T",
-          data: spectrum.ys,
+          label: 'Absorbance (a.u.)',
+          data: spectrum.ysAbs,
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.12,
@@ -561,20 +590,21 @@
           tooltip: {
             callbacks: {
               title: (items) => `Wavenumber: ${items?.[0]?.label} cm⁻¹`,
-              label: (item) => `%T: ${Number(item.parsed.y).toFixed(1)}`
+              label: (item) => `Abs: ${Number(item.parsed.y).toFixed(1)}`
             }
           }
         },
         scales: {
           x: {
+            // Wavenumber increasing to the left -> reverse axis (4000 at left)
             reverse: true,
-            title: { display: true, text: "Wavenumber (cm⁻¹)" },
+            title: { display: true, text: 'Wavenumber (cm⁻¹)' },
             ticks: { maxTicksLimit: 10 }
           },
           y: {
             min: 0,
             max: 100,
-            title: { display: true, text: "Transmittance (%T)" },
+            title: { display: true, text: 'Absorbance (100 − %T)' },
             ticks: { maxTicksLimit: 6 }
           }
         }
@@ -584,13 +614,7 @@
       state.chart = new Chart(ctx, { type: 'line', data, options });
     }
 
-    function depictionUrlFromPubChem(compound) {
-      // Uses PubChem's built-in 2D depiction image service.
-      // If your compound name is ambiguous, prefer storing a PubChem CID and use the CID endpoint.
-      const size = 420; // px
-      const name = encodeURIComponent(compound.name);
-      return `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${name}/PNG?image_size=${size}x${size}`;
-    }
+    function clearChoices() { document.getElementById('choices').innerHTML = ''; }
 
     function makeChoiceCard(compound, idx) {
       const div = document.createElement('div');
@@ -607,25 +631,18 @@
             src="${imgUrl}"
             referrerpolicy="no-referrer"
             loading="lazy"
-            style="max-width: 100%; max-height: 120px; object-fit: contain; filter: invert(0);"
-            onerror="this.style.display='none'; this.parentElement.innerHTML = '<div class=small style=opacity:.8>Could not load depiction.<br/>Try using a PubChem CID for this compound.</div>'"
+            style="max-width: 100%; max-height: 130px; object-fit: contain;"
+            onerror="this.style.display='none'; this.parentElement.innerHTML = '<div class=small style=opacity:.8>Could not load depiction.<br/>Try another name or add PubChem CID support.</div>'"
           />
         </div>
-        <div class="small"><span class="pill">${compound.class}</span></div>
+        <div class="small"><span class="pill">${compound.class}</span> <span class="pill">${compound.subgroup.replace(/_/g,' ')}</span></div>
       `;
 
-      div.addEventListener('click', () => handleAnswer(compound.id, div));
+      div.addEventListener('click', () => handleAnswer(compound.id));
       return div;
     }
 
-    function clearChoices() {
-      const el = document.getElementById('choices');
-      el.innerHTML = '';
-    }
-
-    function lockChoices(lock) {
-      state.locked = lock;
-    }
+    function lockChoices(lock) { state.locked = lock; }
 
     function markChoices(correctId, pickedId) {
       const nodes = Array.from(document.querySelectorAll('.choice'));
@@ -637,14 +654,27 @@
       }
     }
 
-    async function ensureSmiles(_) {
-      // No-op now. We are using PubChem depictions by compound name.
-      // If you want higher reliability, add `cid` to each COMPOUNDS entry and use the CID depiction URL.
-      return null;
+    function showHint() {
+      if (!state.current) return;
+      const el = document.getElementById('hint');
+      el.style.display = 'block';
+
+      const hints = state.current.hints ?? [];
+      if (!hints.length) {
+        el.textContent = 'No hints for this item.';
+        return;
+      }
+
+      // progressive reveal: 1st click shows 1, then 2, etc.
+      state.hintShown = Math.min(hints.length, state.hintShown + 1);
+      const shown = hints.slice(0, state.hintShown);
+      el.innerHTML = `<b>Hint:</b> ${shown.map(h => `• ${h}`).join(' &nbsp; ')}`;
     }
 
     async function newQuestion() {
       lockChoices(false);
+      state.hintShown = 0;
+      document.getElementById('hint').style.display = 'none';
       setStatus('Pick the structure that matches the IR spectrum.');
 
       const pool = poolByFilter();
@@ -657,9 +687,6 @@
       const distractors = chooseDistractors(correct, pool);
       const options = shuffle([correct, ...distractors]);
 
-      // Ensure smiles (optional fetch) for each option
-      await Promise.all(options.map(ensureSmiles));
-
       state.current = correct;
       state.options = options;
 
@@ -669,14 +696,8 @@
       const choicesEl = document.getElementById('choices');
       options.forEach((c, idx) => choicesEl.appendChild(makeChoiceCard(c, idx)));
 
-      // Hints hidden by default; easy mode shows 1 hint to keep it "easy"
-      if (state.mode === 'easy') {
-        setHint(correct.hints?.slice(0, 1) ?? []);
-      } else {
-        setHint([]);
-      }
-
       renderPills();
+      renderStats();
     }
 
     function handleAnswer(chosenId) {
@@ -685,8 +706,8 @@
 
       const correctId = state.current.id;
       const ok = chosenId === correctId;
-
       state.total += 1;
+
       if (ok) {
         state.score += 1;
         state.streak += 1;
@@ -694,14 +715,19 @@
       } else {
         state.streak = 0;
         const chosen = state.options.find(o => o.id === chosenId);
-        setStatus(`❌ Not quite. Correct was: ${state.current.name}. You picked: ${chosen?.name ?? 'unknown'}.`);
+        setStatus(`❌ Not quite. Correct: ${state.current.name}. You picked: ${chosen?.name ?? 'unknown'}.`);
       }
 
       markChoices(correctId, chosenId);
       renderStats();
 
-      // Reveal all hints after answering
-      setHint(state.current.hints ?? []);
+      // After answering, show all hints automatically
+      const el = document.getElementById('hint');
+      const hints = state.current.hints ?? [];
+      if (hints.length) {
+        el.style.display = 'block';
+        el.innerHTML = `<b>Hints:</b> ${hints.map(h => `• ${h}`).join(' &nbsp; ')}`;
+      }
     }
 
     function reveal() {
@@ -709,14 +735,16 @@
       lockChoices(true);
       markChoices(state.current.id, null);
       setStatus(`Answer: ${state.current.name} (${state.current.class})`);
-      setHint(state.current.hints ?? []);
+      const el = document.getElementById('hint');
+      const hints = state.current.hints ?? [];
+      el.style.display = hints.length ? 'block' : 'none';
+      if (hints.length) el.innerHTML = `<b>Hints:</b> ${hints.map(h => `• ${h}`).join(' &nbsp; ')}`;
     }
 
-    // ------------------------------
-    // 5) UI wiring
-    // ------------------------------
+    // UI wiring
     document.getElementById('btnNew').addEventListener('click', newQuestion);
     document.getElementById('btnReveal').addEventListener('click', reveal);
+    document.getElementById('btnHint').addEventListener('click', showHint);
 
     document.getElementById('selMode').addEventListener('change', (e) => {
       state.mode = e.target.value;
@@ -731,7 +759,6 @@
     });
 
     // Bootstrap
-    renderStats();
     renderPills();
     newQuestion();
   </script>
